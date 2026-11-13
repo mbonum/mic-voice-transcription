@@ -26,6 +26,12 @@ source .venv/bin/activate   # or however you set up the env
 python dictate.py
 ```
 
+Options (`python dictate.py --help` for details):
+
+- `--device` — PipeWire source to record from (default: the DJI Mic Mini; list sources with `pw-record -l`)
+- `--output-dir` — where to save the `.md` files (default: `recordings/` next to the script)
+- `--language` — spoken language code for Whisper (default: `en`)
+
 1. Wait for `Ready.` (first run downloads the ~3 GB `large-v3` model to `~/.cache/huggingface`).
 2. Press **ENTER** to start recording.
 3. Talk. Press **ENTER** to stop.
@@ -33,7 +39,6 @@ python dictate.py
 
 ## Notes & gotchas
 
-- **The mic device name is hardcoded** in both scripts: `alsa_input.usb-DJI_Technology_Co.__Ltd._DJI_MIC_MINI_XSP12345678B-01.analog-stereo`. If your mic's USB serial number differs (a different unit, or PipeWire names it differently), find the right one with `pw-record -l` (or `pactl list sources`) and update the `--target` argument.
-- **Output location is hardcoded** to `~/Dev/dji-mic-voice-transcription/recordings`.
-- **Whisper repetition artifacts**: on long, unbroken monologues Whisper can repeat a phrase several times in a row (visible in the sample transcript in this repo). If it bothers you, try shorter recordings, or add `condition_on_previous_text=False` to `model.transcribe(...)` to reduce the loop.
-- Language is fixed to English (`language="en"`); change it in `transcribe()` for other languages.
+- **Different mic or unit?** The default `--device` targets a DJI Mic Mini; PipeWire names include the mic's USB serial, so a different unit gets a different name. Find yours with `pw-record -l` (or `pactl list sources`) and pass it via `--device`. (`dictate-terminal.py` still has its device hardcoded.)
+- **Whisper repetition artifacts**: on long, unbroken monologues Whisper can repeat a phrase several times in a row. If it bothers you, try shorter recordings, or add `condition_on_previous_text=False` to `model.transcribe(...)` to reduce the loop.
+- **Empty recording**: if you stop immediately, the script detects the header-only WAV and exits cleanly instead of wasting time on a transcription.

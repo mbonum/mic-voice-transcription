@@ -1,3 +1,4 @@
+import argparse
 import os
 import subprocess
 import tempfile
@@ -7,8 +8,34 @@ from faster_whisper import WhisperModel
 
 MODEL = "large-v3"
 
-OUTPUT_DIR = os.path.expanduser("~/Dev/dji-mic-voice-transcription/recordings")
+DEFAULT_DEVICE = (
+    "alsa_input.usb-DJI_Technology_Co.__Ltd._DJI_MIC_MINI_XSP12345678B-01.analog-stereo"
+)
+DEFAULT_OUTPUT_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "recordings"
+)
 
+parser = argparse.ArgumentParser(
+    description="Record from a mic and transcribe locally with Whisper."
+)
+parser.add_argument(
+    "--device",
+    default=DEFAULT_DEVICE,
+    help="PipeWire source to record from (list sources with `pw-record -l`)",
+)
+parser.add_argument(
+    "--output-dir",
+    default=DEFAULT_OUTPUT_DIR,
+    help="Directory to save .md transcripts (default: ./recordings next to this script)",
+)
+parser.add_argument(
+    "--language",
+    default="en",
+    help="Spoken language code for Whisper (default: en)",
+)
+args = parser.parse_args()
+
+OUTPUT_DIR = args.output_dir
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -33,7 +60,7 @@ process = subprocess.Popen(
     [
         "pw-record",
         "--target",
-        "alsa_input.usb-DJI_Technology_Co.__Ltd._DJI_MIC_MINI_XSP12345678B-01.analog-stereo",
+        args.device,
         audio_file,
     ]
 )
@@ -43,11 +70,16 @@ input()
 process.terminate()
 process.wait()
 
+if os.path.getsize(audio_file) <= 44:  # only a bare WAV header
+    print("⚠️ Nothing recorded (empty file), skipping transcription.")
+    os.unlink(audio_file)
+    raise SystemExit(0)
+
 print("🧠 Transcribing...")
 
 segments, info = model.transcribe(
     audio_file,
-    language="en",
+    language=args.language,
     beam_size=5,
 )
 
