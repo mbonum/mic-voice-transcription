@@ -10,8 +10,6 @@ Dictate into a **DJI Mic Mini** over USB and get a timestamped Markdown transcri
 2. **Transcribes** — runs the transcript through Whisper `large-v3` (CUDA, float16, beam search, English).
 3. **Saves** — writes `recordings/YYYY-MM-DD_HH-MM-SS.md` with a date header and the text, prints the transcript, and deletes the temp audio file.
 
-`dictate-terminal.py` is an older, simpler variant: same record + transcribe, but it only prints the text and never saves a file.
-
 ## Requirements
 
 - The DJI Mic Mini plugged in over USB (it shows up as an ALSA/PipeWire device).
@@ -39,6 +37,6 @@ Options (`python dictate.py --help` for details):
 
 ## Notes & gotchas
 
-- **Different mic or unit?** The default `--device` targets a DJI Mic Mini; PipeWire names include the mic's USB serial, so a different unit gets a different name. Find yours with `pw-record -l` (or `pactl list sources`) and pass it via `--device`. (`dictate-terminal.py` still has its device hardcoded.)
+- **Different mic or unit?** The default `--device` targets a DJI Mic Mini; PipeWire names include the mic's USB serial, so a different unit gets a different name. Find yours with `pw-record -l` (or `pactl list sources`) and pass it via `--device`.
 - **Whisper repetition artifacts**: on long, unbroken monologues Whisper can repeat a phrase several times in a row. If it bothers you, try shorter recordings, or add `condition_on_previous_text=False` to `model.transcribe(...)` to reduce the loop.
 - **Empty recording**: if you stop immediately, the script detects the header-only WAV and exits cleanly instead of wasting time on a transcription.
