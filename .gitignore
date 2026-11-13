@@ -1,1 +1,4 @@
-recordings/*
+recordings/
+.venv/
+__pycache__/
+*.wav
